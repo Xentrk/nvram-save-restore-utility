@@ -1,0 +1,551 @@
+#!/bin/sh
+####################################################################################################
+# Script: nsrum
+# Author: Xentrk
+# Last Updated Date: 15-February-2020
+#
+# Description:
+#  Install NVRAM Save/Restore Utility Files.
+#
+# Acknowledgements:
+#  Thank you to @john9547 for coding the original utility up to release 26.2.
+#
+#  This project would never have been made possible if not for @Martineau on snbfourms.com
+#  who provided the code updates after @john9547 stopped maintaining the remp
+#
+# Code for update code functions inspired by https://github.com/Adamm00 - credit to @Adamm
+# and https://github.com/jackyaz/spdMerlin - credit to Jack Yaz
+# Manage_Device() function credit to @Adamm
+####################################################################################################
+# shellcheck disable=SC2028
+# shellcheck disable=SC2034
+
+logger -t "($(basename "$0"))" "$$ Starting Script Execution ($(if [ -n "$1" ]; then echo "$1"; else echo "menu"; fi))"
+VERSION=30.3.0
+GIT_REPO="nvram-save-restore-utility"
+GITHUB_DIR="https://raw.githubusercontent.com/Xentrk/${GIT_REPO}/master"
+NSRU_LOCATION=$(ls -d -- /tmp/mnt/*/nsru 2>/dev/null)
+#NSRU_LOCATION="$(grep -ow "NSRU_LOCATION.*" /mnt/NSRU_LOCATION 2>/dev/null | grep -vE "^#" | awk '{print $1}' | cut -c 15-)"
+#NSRU_LOCATION=$(find /tmp/mnt -type d -name "nsru")
+
+ANSIColours() {
+
+  cRESET="\e[0m"
+  cBLA="\e[30m"
+  cRED="\e[31m"
+  cGRE="\e[32m"
+  cYEL="\e[33m"
+  cBLU="\e[34m"
+  cMAG="\e[35m"
+  cCYA="\e[36m"
+  cGRA="\e[37m"
+  cBGRA="\e[90m"
+  cBRED="\e[91m"
+  cBGRE="\e[92m"
+  cBYEL="\e[93m"
+  cBBLU="\e[94m"
+  cBMAG="\e[95m"
+  cBCYA="\e[96m"
+  cBWHT="\e[97m"
+  aBOLD="\e[1m"
+  aDIM="\e[2m"
+  aUNDER="\e[4m"
+  aBLINK="\e[5m"
+  aREVERSE="\e[7m"
+  cRED_="\e[41m"
+  cGRE_="\e[42m"
+}
+
+# Uncomment the line below for debugging
+#set -x
+ANSIColours
+
+Welcome_Message() {
+  clear
+  printf '\n________________________________________________________________________\n'
+  printf '|                                                                      |\n'
+  printf '|  Welcome to the %bnvram-save-restore-utility%b installation script       |\n' "$cGRE" "$cRESET"
+  printf '|  Version %s                                                      |\n' "$VERSION"
+  printf '|         ____        _         _                                      |\n'
+  printf '|        |__  |      | |       | |                                     |\n'
+  printf '|  __  __  _| |_ _ _ | |_  ___ | | __    ____ ____  _ _ _              |\n'
+  printf '|  \ \/ / |_  | %b %b \  __|/ _ \| |/ /   /  _//    \| %b %b \             |\n' "\`" "\`" "\`" "\`"
+  printf '|   /  /  __| | | | |  |_ | __/|   <   (  (_ | [] || | | |             |\n'
+  printf '|  /_/\_\|___ |_|_|_|\___|\___||_|\_\[] \___\\\____/|_|_|_|             |\n'
+  printf '|______________________________________________________________________|\n'
+  printf '|                                                                      |\n'
+  printf '| Requirements: Properly formatted USB Drive with designated partition |\n'
+  printf '|                                                                      |\n'
+  printf '| See the project repository at                                        |\n'
+  printf '| %bhttps://github.com/Xentrk/nvram-save-restore-utility%b                 |\n' "$cGRE" "$cRESET"
+  printf '| for helpful tips.                                                    |\n'
+  printf '|______________________________________________________________________|\n\n'
+  Main_Menu
+}
+
+Main_Menu() {
+  printf '%b[1]%b  Install NVRAM Save/Restore Utility Files\n' "$cGRE" "$cRESET"
+  printf '%b[2]%b  Check for updates to existing installation\n' "$cGRE" "$cRESET"
+  printf '%b[3]%b  Force update existing installation\n' "$cGRE" "$cRESET"
+  printf '%b[4]%b  Remove NVRAM Save/Restore Utility\n' "$cGRE" "$cRESET"
+  localmd5="$(md5sum "/jffs/scripts/nsrum" | awk '{print $1}')"
+  remotemd5="$(curl -fsL --retry 3 "${GITHUB_DIR}/nsrum" | md5sum | awk '{print $1}')"
+  if [ "$localmd5" != "$remotemd5" ]; then
+    printf '%b[5]%b  Update NVRAM Save/Restore Utility Menu\n' "$cGRE" "$cRESET"
+  fi
+  printf '\n%b[e]%b  Exit Script\n' "$cGRE" "$cRESET"
+  while true; do
+    printf '\n%bOption ==>%b ' "$cGRE" "$cRESET"
+    read -r "menu1"
+
+    case "$menu1" in
+    1)
+      Manage_Device
+      Install_Utility_Files "$device"
+      return 1
+      ;;
+    2)
+      Confirm_Update no_force
+      return 1
+      ;;
+    3)
+      Confirm_Update force
+      return 1
+      ;;
+    4)
+      Validate_Removal
+      return 1
+      ;;
+    5)
+      Update_Installer
+      return 1
+      ;;
+    e)
+      Exit_Message
+      ;;
+    *)
+      printf '%bInvalid Option%b %s%b Please enter a valid option\n' "$cRED" "$cGRE" "$menu1" "$cRESET"
+      ;;
+    esac
+  done
+}
+
+Manage_Device() {
+  echo "Looking For Available Partitions"
+  i=1
+  IFS="
+		"
+  for mounted in $(/bin/mount | grep -E "ext2|ext3|ext4|tfat|exfat" | awk '{printf "%s - (%s)\n", $3, $1}'); do
+    #echo "[$i]  --> $mounted"
+    printf '%b%s%b%s\n' "$cGRE" "[$i] " "$cRESET" "--> $mounted"
+    eval mounts$i="$(echo "$mounted" | awk '{print $1}')"
+    i=$((i + 1))
+  done
+  unset IFS
+  if [ "$i" = "1" ]; then
+    echo "[*] No Compatible ext* USB Partitions Found - Exiting!"
+    echo
+    exit 1
+  fi
+
+  Select_Device() {
+    echo
+    echo "Please Enter Partition Number Or e To Exit"
+    #printf "[0-%s]: " "$((i - 1))"
+    printf '%b%s%s%b ' "$cGRE" "[1-" "$((i - 1))]: " "$cRESET"
+    read -r "partitionNumber"
+    echo
+    if [ "$partitionNumber" = "e" ] || [ "$partitionNumber" = "exit" ]; then
+      echo "[*] Exiting!"
+      echo
+      exit 0
+    elif [ -z "$partitionNumber" ] || [ "$partitionNumber" -gt $((i - 1)) ] 2>/dev/null || [ "$partitionNumber" = "0" ]; then
+      echo "[*] Invalid Partition Number!"
+      Select_Device
+    elif [ "$partitionNumber" -eq "$partitionNumber" ] 2>/dev/null; then
+      true
+    else
+      echo "[*] $partitionNumber Isn't An Option!"
+      Select_Device
+    fi
+  }
+
+  Select_Device
+  device=""
+  eval device=\$mounts"$partitionNumber"
+  touch "${device}/rwtest"
+  if [ ! -w "${device}/rwtest" ]; then
+    echo "[*] Writing To $device Failed - Exiting!"
+    Manage_Device
+  else
+    rm -rf "${device}/rwtest"
+  fi
+}
+
+Validate_Removal() {
+  while true; do
+    printf '\n%s\n\n' "Are you sure you want to uninstall the nvram-save-restore-utility and all associated files?"
+    printf '%b%s%b%s\n' "$cGRE" "[1]" "$cRESET" "--> Confirm"
+    printf '%b%s%b%s\n' "$cGRE" "[2]" "$cRESET" "--> Cancel"
+    printf '\n%b%s%b%s' "$cGRE" "[1-2]" "$cRESET" ": "
+    read -r "menu_Validate_Removal"
+    case "$menu_Validate_Removal" in
+    1)
+      Remove_Existing_Installation
+      break
+      ;;
+    2)
+      Welcome_Message
+      break
+      ;;
+    *)
+      printf '%bInvalid Option%b %s%b Please enter a valid option\n' "$cRED" "$cGRE" "$menu_Validate_Removal" "$cRESET"
+      ;;
+    esac
+  done
+}
+
+Confirm_Update() {
+
+  while true; do
+    if [ "$1" = "no_force" ]; then
+      printf '\n\nThis option will check your current installation and update any files that have changed\n'
+      printf 'since you last installed the repository.  Updating is highly recommended to get the most recent.\n'
+      printf 'files. Chosing this option will not update missing files. Select the install option from the\n'
+      printf 'menu to reinstall missing files\n\n'
+      printf 'Would you like to check and download any files that have been updated?\n'
+      printf '%b[1]%b  --> Confirm\n' "$cGRE" "$cRESET"
+      printf '%b[2]%b  --> No\n' "$cGRE" "$cRESET"
+      printf '\n%b%s%b%s' "$cGRE" "[1-2]" "$cRESET" ": "
+      read -r "Confirm_Update_Option"
+      case "$Confirm_Update_Option" in
+      1)
+        Update_Version no_force
+        break
+        ;;
+      2)
+        Welcome_Message
+        break
+        ;;
+      *)
+        echo "[*] $Confirm_Update_Option Isn't An Option!"
+        ;;
+      esac
+    else
+      printf '\n\nThis option will check your current installation and force update any files\n'
+      printf 'found installed in the nvram-save-restore-utility repository.\n'
+      printf 'Chosing this option will not update missing files. Select the install option from the\n'
+      printf 'menu to reinstall missing files\n\n'
+      printf 'Would you like to check and download any files that have been updated?\n'
+      printf '%b[1]%b  --> Yes\n' "$cGRE" "$cRESET"
+      printf '%b[2]%b  --> No\n' "$cGRE" "$cRESET"
+      echo
+      printf '[1-2]: '
+      read -r "Confirm_Update_Option"
+      case "$Confirm_Update_Option" in
+      1)
+        Update_Version force
+        break
+        ;;
+      2)
+        Welcome_Message
+        break
+        ;;
+      *)
+        echo "[*] $Confirm_Update_Option Isn't An Option!"
+        ;;
+      esac
+    fi
+  done
+}
+
+### Code for update code functions inspired by https://github.com/Adamm00 - credit to @Adamm
+### and https://github.com/jackyaz/spdMerlin - credit to Jack Yaz
+Update_Version() {
+
+  if [ -d "$NSRU_LOCATION" ]; then
+    for FILE in clear-maclist.sh \
+      jffs-restore.sh \
+      nvram-excp-merlin.sh \
+      nvram-hnd-migr.sh \
+      nvram-merlin.ini \
+      nvram-restore.sh \
+      nvram-sample.ini \
+      nvram-save.sh \
+      nvram-user-sample.sh \
+      save-mynvram.sh; do
+      if [ -s "${NSRU_LOCATION}/${FILE}" ]; then
+        if [ "$1" = "no_force" ]; then
+          if [ "$FILE" != "clear-maclist.sh" ]; then
+            if [ "$FILE" != "nvram-sample.ini" ]; then
+              if [ "$FILE" != "nvram-user-sample.sh" ]; then
+                if [ "$FILE" != "save-mynvram.sh" ]; then
+                  if [ "$FILE" != "nvram-merlin.ini" ]; then
+                    if [ "$FILE" != "nvram-excp-merlin.sh" ]; then
+                      if [ "$FILE" != "nvram-hnd-migr.sh" ]; then
+                        # force_update="false"
+                        localver=$(grep "VERSION=" "${NSRU_LOCATION}/${FILE}" | grep -m1 -oE '[0-9]{1,2}([.][0-9]{1,2})([.][0-9]{1,2})')
+                        serverver=$(/usr/sbin/curl -fsL --retry 3 "${GITHUB_DIR}/${FILE}" | grep "VERSION=" | grep -m1 -oE '[0-9]{1,2}([.][0-9]{1,2})([.][0-9]{1,2})')
+                        if [ "$localver" != "$serverver" ]; then
+                          printf 'New version of %b%s%b available - updating to %s\n' "$cGRE" "$FILE" "$cRESET" "$serverver"
+                          Download_File "$DIR" "$FILE"
+                        else
+                          printf 'No new version of %b%s%b to update - latest is %s\n' "$cGRE" "$FILE" "$cRESET" "$serverver"
+                        fi
+                      fi
+                    fi
+                  fi
+                fi
+              fi
+            fi
+          fi
+          localmd5="$(md5sum "${NSRU_LOCATION}/${FILE}" | awk '{print $1}')"
+          remotemd5="$(curl -fsL --retry 3 "${GITHUB_DIR}/${FILE}" | md5sum | awk '{print $1}')"
+          if [ "$localmd5" != "$remotemd5" ]; then
+            printf 'MD5 hash of %b%s%b does not match - downloading %b%s%b\n' "$cGRE" "$FILE" "$cRESET" "$cGRE" "$FILE" "$cRESET"
+            Download_File "$NSRU_LOCATION" "$FILE"
+          else
+            printf 'MD5 hash of %b%s%b matches - skiping download %b%s%b\n' "$cGRE" "$FILE" "$cRESET" "$cGRE" "$FILE" "$cRESET"
+          fi
+        fi
+
+        case "$1" in
+        force)
+          serverver=$(/usr/sbin/curl -fsL --retry 3 "${GITHUB_DIR}/${FILE}" | grep "VERSION=" | grep -m1 -oE 'v[0-9]{1,2}([.][0-9]{1,2})([.][0-9]{1,2})')
+          echo "Downloading latest version $serverver of $FILE"
+          Download_File "$NSRU_LOCATION" "$FILE"
+          ;;
+        esac
+
+        #    else
+        #	    echo "Project Repository directory $DIR not found"
+        #	    echo "Select the install option from the main menu to install the respository"
+      fi
+      # Download if file does not exist
+      if [ ! -s "${NSRU_LOCATION}/${FILE}" ]; then
+        Download_File "$NSRU_LOCATION" "$FILE"
+      fi
+    done
+  else
+    echo "Project Repository directory $DIR not found"
+    echo "Select the install option from the main menu to install the respository"
+  fi
+
+  echo
+  echo "Update of nvram-save-restore-utility completed"
+  echo
+  echo "Press enter to continue"
+  read -r
+  Welcome_Message
+}
+
+Remove_Existing_Installation() {
+  printf '\n%b%s%b%s%b\n\n' "$cRED" "WARNING: This will remove all scripts and backup files stored in " "$cGRE" "$NSRU_LOCATION" "$cRESET"
+  printf '%s%b\n\n' "Do you want to proceed?" "$cRESET"
+  printf '%b%s%b%s\n' "$cGRE" "[1]" "$cRESET" "--> Confirm"
+  printf '%b%s%b%s\n' "$cGRE" "[2]" "$cRESET" "--> Cancel"
+  printf '\n%b%s%b%s' "$cGRE" "[1-2]" "$cRESET" ": "
+  while read -r "menu_Validate_Removal"; do
+    case "$menu_Validate_Removal" in
+    1)
+      echo ""
+      echo "Starting removal of the NVRAM Save/Restore Utility"
+      # Purge installation directory
+      for DIR in $NSRU_LOCATION; do
+        if [ -d "$DIR" ]; then
+          if ! rm -rf "${DIR:?}/"* >/dev/null 2>&1; then
+            printf '\n%b%s%b\n' "$cGRE" "No files found to remove in $DIR" "$cRESET"
+          fi
+          if ! rmdir "$DIR" >/dev/null 2>&1; then
+            printf '\n%s%b%s%b\n' "Error trying to remove " "$cGRE" "$DIR" "$cRESET"
+          else
+            printf '\n%s%b%s%b\n' "folder and all files removed from " "$cGRE" "$DIR" "$cRESET"
+          fi
+        else
+          printf '\n%s%b%s%b\n' "Directory does not exist. No directory to remove" "$cGRE" "$DIR" "$cRESET"
+        fi
+      done
+
+      # Remove aliases from /jffs/configs/profile.add
+      if [ -s "/jffs/configs/profile.add" ]; then
+        # remove nsru alias
+        if grep -q "nsru=" "/jffs/configs/profile.add"; then
+          sed -i '/nsru=/d' "/jffs/configs/profile.add" && printf '\n%s%b%s%b\n' "alias 'nsru' removed from " "$cGRE" "/jffs/configs/profile.add" "$cRESET"
+        fi
+        # remove nsrum alias
+        if grep -q "nsrum=" "/jffs/configs/profile.add"; then
+          sed -i '/nsrum=/d' "/jffs/configs/profile.add" && printf '\n%s%b%s%b\n' "alias 'nsrum' removed from " "$cGRE" "/jffs/configs/profile.add" "$cRESET"
+        fi
+      fi
+
+      # Remove Menu
+      if [ -s "/jffs/scripts/nsrum" ]; then
+        if ! rm "/jffs/scripts/nsrum" >/dev/null 2>&1; then
+          printf '\n%s%b%s%b\n' "Error trying to remove" "$cGRE" "/jffs/scripts/nsrum" "$cRESET"
+        else
+          printf '\n%b%s%b%s\n\n' "$cGRE" "/jffs/scripts/nsrum" "$cRESET" " menu removed"
+        fi
+      fi
+
+      # Final message
+      echo "Removal of NVRAM Save/Restore Utility Completed"
+      break
+      ;;
+    2)
+      Welcome_Message
+      break
+      ;;
+    *)
+      echo "[*] $menu_Update_Installer Is Not An Option!"
+      break
+      ;;
+    esac
+  done
+
+  Exit_Message
+}
+
+Download_File() {
+
+  DIR="$1"
+  FILE="$2"
+
+  STATUS="$(curl --retry 3 -sL -w '%{http_code}' "${GITHUB_DIR}/${FILE}" -o "${DIR}/${FILE}")"
+  if [ "$STATUS" -eq "200" ]; then
+    printf '%b%s%b downloaded successfully\n' "$cGRE" "$FILE" "$cRESET"
+    if [ "$(echo "$FILE" | grep -c '.sh')" -gt 0 ]; then
+      chmod 0755 "${DIR}/${FILE}"
+    fi
+  else
+    printf '%b%s%b download failed with curl error %s\n' "$cGRE" "$FILE" "$cRESET" "$STATUS"
+    printf 'Rerun the install %bx3mRouting for LAN Clients%b option\n' "$cGRE" "$cRESET" "$cGRE" "$cRESET"
+    exit 1
+  fi
+}
+
+Exit_Message() {
+
+  printf '\n     %bhttps://github.com/Xentrk/nvram-save-restore-utility %b\n' "$cGRE" "$cRESET\\n"
+  printf '                      Have a Grateful Day!\n\n'
+  printf '           ____        _         _                           \n'
+  printf '          |__  |      | |       | |                          \n'
+  printf '    __  __  _| |_ _ _ | |_  ___ | | __    ____ ____  _ _ _   \n'
+  printf '    \ \/ / |_  | %b %b \  __|/ _ \| |/ /   /  _//    \| %b %b \ \n' "\`" "\`" "\`" "\`"
+  printf '     /  /  __| | | | |  |_ | __/|   <   (  (_ | [] || | | |  \n'
+  printf '    /_/\_\|___ |_|_|_|\___|\___||_|\_\[] \___\\\____/|_|_|_| \n\n\n'
+  exit 0
+}
+
+Update_Profile_Add() {
+
+  PARM="$1"
+  NSRU_LOCATION="$2"
+  CONFIG_DIR="$3"
+  PROFILE_FILE="$4"
+  ALIAS="$(echo "$PARM" | sed 's/alias//;s/=.*//;s/ //')"
+
+  {
+    echo ""
+    echo "$PARM"
+  } >>"$CONFIG_DIR/$PROFILE_FILE"
+
+  if [ "$ALIAS" = "nsru" ]; then
+    printf '%s%b%s%b\n' "Alias 'nsru' has been added to " "$cGRE" "/jffs/configs/profile.add" "$cRESET"
+    printf '%s%b%s%b\n\n' "You must open a new SSH session and type 'nsru' to navigate to the project directory " "$cGRE" "$NSRU_LOCATION" "$cRESET"
+  fi
+  if [ "$ALIAS" = "nsrum" ]; then
+    printf '%s%b%s%b\n' "Alias 'nsrum' has been added to " "$cGRE" "/jffs/configs/profile.add" "$cRESET"
+    printf '%s\n\n' "You must open a new SSH session and type 'nsrum' to access the NVRAM Save/Restore Utility Installation Menu"
+  fi
+}
+
+Check_Profile_Add() {
+
+  NSRU_LOCATION="$1"
+  CONFIG_DIR="/jffs/configs"
+  PROFILE_FILE="profile.add"
+
+  for PARM in "alias nsru='cd $NSRU_LOCATION'" "alias nsrum='sh /jffs/scripts/nsrum'"; do
+    if [ -d "$CONFIG_DIR" ]; then
+      if [ -s "$CONFIG_DIR/$PROFILE_FILE" ]; then
+        if [ "$(grep -cw "$PARM" "$CONFIG_DIR/$PROFILE_FILE")" -gt 0 ]; then # see if line exists
+          return
+        else
+          Update_Profile_Add "$PARM" "$NSRU_LOCATION" "$CONFIG_DIR" "$PROFILE_FILE"
+        fi
+      else
+        true >"$CONFIG_DIR/$PROFILE_FILE"
+        Update_Profile_Add "$PARM" "$NSRU_LOCATION" "$CONFIG_DIR" "$PROFILE_FILE"
+      fi
+    else
+      mkdir "$CONFIG_DIR"
+      true >"$CONFIG_DIR/$PROFILE_FILE"
+      Update_Profile_Add "$PARM" "$NSRU_LOCATION" "$CONFIG_DIR" "$PROFILE_FILE"
+    fi
+  done
+}
+
+Install_Utility_Files() {
+
+  DEVICE="$1"
+
+  [ ! -d "${DEVICE}/nsru" ] && mkdir -p "$DEVICE/nsru"
+  INSTALL_DIRECTORY="${DEVICE}/nsru"
+  #echo "NSRU_LOCATION=$INSTALL_DIRECTORY" >/mnt/NSRU_LOCATION
+
+  for FILE in clear-maclist.sh \
+    jffs-restore.sh \
+    nvram-excp-merlin.sh \
+    nvram-merlin.ini \
+    nvram-restore.sh \
+    nvram-hnd-migr.sh \
+    nvram-sample.ini \
+    nvram-save.sh \
+    nvram-user-sample.sh \
+    save-mynvram.sh; do
+    Download_File "${DEVICE}/nsru" "$FILE"
+  done
+
+  [ ! -d "${DEVICE}/nsru/backup" ] && mkdir -p "${DEVICE}/nsru/backup"
+
+  echo
+  NSRU_LOCATION=$(ls -d -- /tmp/mnt/*/nsru)
+  Check_Profile_Add "$NSRU_LOCATION"
+  printf '%s\n\n' "Installation of NVRAM Save/Restore Utility completed"
+  printf '%s%b%s%b\n' "NVRAM Save/Restore Utility code directory: " "$cGRE" "$DEVICE/nsru" "$cRESET"
+  printf '%s%b%s%b\n\n' "NVRAM Save/Restore Utility backup directory: " "$cGRE" "${DEVICE}/nsru/backup" "$cRESET"
+  echo "Press enter to continue"
+  read -r
+  Welcome_Message
+}
+
+Update_Installer() {
+  while true; do
+    printf '\n\nAn updated version of the NVRAM Save/Restore Utility Menu as been detected\n'
+    printf 'Updating the NVRAM Save/Restore Utility Menu is highly recommended.\n'
+    printf 'Would you like to download the new version now?\n\n'
+    printf '%b[1]%b  --> Yes\n' "$cGRE" "$cRESET"
+    printf '%b[2]%b  --> No\n' "$cGRE" "$cRESET"
+    echo
+    printf '%b[1-2]%b: ' "$cGRE" "$cRESET"
+    read -r "menu_Update_Installer"
+    echo
+    case "$menu_Update_Installer" in
+    1)
+      Download_File /jffs/scripts nsrum
+      printf '\nUpdate Complete! %s\n' "$remotemd5"
+      sh /jffs/scripts/nsrum
+      break
+      ;;
+    2)
+      Main_Menu
+      break
+      ;;
+    *)
+      echo "[*] $menu_Update_Installer Is Not An Option!"
+      ;;
+    esac
+  done
+}
+
+Welcome_Message
