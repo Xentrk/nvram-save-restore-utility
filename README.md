@@ -36,7 +36,7 @@ Copy and paste the command below into an SSH session:
 ```
 This command will download and install the NVRAM Save/Restore Ulitity Menu **nsrum** to the **/jffs/scripts** directory.
 
-<img src="https://github.com/Xentrk/nvram-save-restore-utility/blob/master/InstallationMenu.PNG" alt="drawing" width="700" height="600"/>
+<img src="https://github.com/Xentrk/nvram-save-restore-utility/blob/master/InstallationMenu.png" alt="drawing" width="700" height="600"/>
 
 Option **[5]  Update NVRAM Save/Restore Utility Menu** will only be displayed if there is an update to the installation menu available.
 
