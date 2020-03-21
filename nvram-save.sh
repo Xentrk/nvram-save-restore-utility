@@ -594,7 +594,6 @@ NVRAM_BYTES=0
 ###########################################################################################################################################
 echo "" >>"$nvramusrfile"
 
-#set -x
 echo ""
 processvar=1
 while read -r var; do
@@ -945,7 +944,6 @@ fi
 
 # Process user exit if it exists
 if [ -f "$cwd/nvram-user.sh" ] && [ "$userscript" -eq 1 ]; then
-  set -x
   ############################################################################################Martineau Hack ######################################
   sh "$cwd/nvram-user.sh" "$rundate$UNDERSCORE$MYROUTER$dash$macid" # don't need to pass dir anymore: $dwd"
   #sh $cwd/nvram-user.sh $dash$rundate$dash$macid $dwd
