@@ -32,4 +32,4 @@ else
 fi
 
 echo "Creating nvram-backup-$1.tar.gz"
-tar -cvf "$cwd/backup/nvram-backup-$1.tar.gz" "$cwd/backup/nvram-restore-$1.sh" "$cwd/backup/jffs-$1"
+tar -czvf "$cwd/backup/nvram-backup-$1.tar.gz" "$cwd/backup/nvram-restore-$1.sh" "$cwd/backup/jffs-$1"
