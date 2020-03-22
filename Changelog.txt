@@ -1,0 +1,309 @@
+Changelog
+---------
+Version 30.3	  10-February-2020
+Program Changes
+- POSIX and code updates for launch to SNBForum.
+
+Version 30.1
+Program Changes
+- Version 30.1 Martineau Hacked for v384.xx+!!
+
+Version 26.2	  22-September-2017
+Program Changes
+- fix problem honoring special variable flags during restore (nvram-save.sh change)
+
+
+Version 26.1	  15-September-2017
+Program Changes
+- update prompts during jffs-restore to better address migrations
+- process tagged vars that need to have empty values saved/restored
+- add support for separate user variable adds via nvram.ini.add
+INI file changes
+- tag dsn_probe and dns-filter vars for forced save/restore even if empty
+- resync with new adds for 380.68
+
+
+Version 26.0	  1-September-2017
+Program Changes
+- change version numbering
+- updates for migration and clean restore
+- alert for mac address mismatch instead of aborting
+- change for QoS inactive after restore
+- add vpn client accept dns changes to exception processing
+INI file Changes
+- change version numbering
+- add missing enable vars for ftp and samba
+- force restore transient var qos_inuse
+- exclude samba and media server names during migrate (default based on mac)
+- sync with 380.68 and V27 final
+
+
+Version 25a	  9-August-2017
+Program Changes
+- change force include flag to '+' to work around busybox bug
+INI file Changes
+- change force include flag to '+' to work around busybox bug
+
+
+Version 25	  8-August-2017
+Program Changes
+- support ini file ignore during clean variable flag
+- support doing a migration restore from a full save file
+- fix run log formatting in nvram-restore and jffs-restore
+- refactor exception processing and log changes made
+- update exception processing to handle sshd options
+- misc QuickStart guide updates
+INI file Changes
+- sync with Merlin 380.67 and LTS fork V27
+- misc updates to wan and wifi variables
+- add support for hotspot and captive portal features (currently not supported)
+
+
+Version 24a	  12-February-2017
+INI file Changes
+- sync with 380.65 Merlin and V23 fork
+- add support for Merlin firmware update
+- add support for new ipv6 options
+- add support for OpenVPN 2.4
+- add support for DNSCrypt
+- add support MU-MIMO options
+- add support for Bluetooth compatibility
+- add support for Facebook WIFI (ASUS OEM only)
+- misc updates to wan and wifi variables
+
+
+Version 24	  2-May-2016
+Program Changes
+- add hhmm to file timestamp naming (full timestamp)
+- set qos_type if moving to adaptive qos firmware from non-adaptive
+- update Quickstart guide with info on need for jffs restore
+- update Quickstart guide with info on moving MAC list filters
+  between firmware levels
+INI file Changes
+- fix 3rd radio psk and wps vars
+- add Smartconnect support
+
+
+Version 23	  3-April-2016
+Program Changes
+- handle mac_list differences between fw levels
+- include clear-maclist-sh to reset MAC filters if necessary
+- auto correct bad wl_band vars (fix old bug still present on some systems)
+- some changes dependent on not in migration mode
+- remove code to delete unused vars (use clean restore instead)
+- exceptions not applied if ASUS OEM code detected
+- ensure do not enable scripts in migration mode
+- add help text for clean restore
+- update Quickstart guide with Apple OS info
+- single Quicsktart.txt guide in DOS/Windows format
+INI file Changes
+- sync with 380.58 Merlin and V17 fork
+- reduced number of OpenVPN servers to 2 (number actually supported)
+- move and update vars to new Tweaks and Hidden settings section
+- add support for radius server
+- add user Email vars
+- add custom icon vars
+- add Traffic Control settings (future fw)
+- added section for custom User Adds
+
+
+Version 22	  27-October-2015
+Program Changes
+- show version numbers with -v
+- print ini version to syslog
+- add ini version to runlog
+- only set file permissions on non-FAT format drives
+- update Merlin/Fork unique variables
+INI file Changes
+- fix SMB/FTP access restore by adding index var
+- fix ipv6 settings for non-native modes
+- additional support for 3 radios
+- add support for 374 fork http port change
+- add support for syslog logging level and msg level
+- add support for reboot schedule
+- add support for up to 5 VPN servers/clients
+- add support for QOS bw limiting
+- add support for WTFast
+- add support for KeyGuard
+
+
+Version 21	  6-August-2015
+Program Changes
+- fix call to exception processing if not running from current directory
+- fix bug in setting jffs options moving from <378 to 378.55
+
+
+Version 20        3-August-2015
+Program Changes
+- enable running script from other than current directory
+- strip CR from custom strings during save
+- update Merlin/Fork unique vars in exception processing
+INI file Changes
+- add missing Protect Management Frame vars
+- add missing mode Settings vars
+- add missing Disk Utility vars
+- add support for AC3200 third radio
+- add support for Concurrent Repeater (future fw)
+- add support for bandwidth monitoring (future fw)
+- update Merlin/Fork unique vars
+
+
+Version 19         16-June-2015
+INI file Changes
+- restore overzealous cleaning of dhpc_, lan_ vars
+- add new Merlin jffs2_enable
+
+
+Version 18         14-June-2015
+Program Changes
+- add -clean option (for nvram-restore) to only
+  only restore nvram variables which exist
+  (useful if backleveling fw to clean
+  nvram variables added for new function)
+- running in migration mode automatically invokes
+  the -clean option when restoring
+- nvram-restore prompts for clean restore with file generated
+  by latest level
+- updated exception script with latest fork variables
+- update QuickStart guide
+INI file Changes
+- general update based on latest defaults.c
+  included reported missing
+  ipv6_ns_drop, dms_dir_manual, acs_dfs
+- Add [TOR VPN] section
+- remove unneccessary wl_,dhcp_ vars
+- update vars for migration mode
+
+
+Version 17        29-April-2015
+INI file changes only
+- added missing var for http/https mode
+- add separate USB Modem section and move existing modem vars from DualWan
+- add support vars for Merlin VPN policy based routing
+
+
+Version 16        16-April-2015
+Program Changes
+- add -nouser option to NOT run a configured user exit script
+- create a nvram-util.log file logging save/restore activity
+- new standalone program nvram-restore.sh
+- nvram-restore.sh and jffs-restore.sh will now prompt you to load the
+	last saved backups if run without any input parameters
+- ability to set a 'backup' subdirectory for the nvram save files
+- pass backup directory to user exist script as second parameter
+- update fork specific vars for removal on non-fork code
+- update QuickStart guide
+INI file Changes
+- add first pass of TrendMicro module section
+- add https router access vars
+- add nat loopback var for Merlin
+- update DNSFilter section with YanexDNS vars
+
+
+Version 15      25-February-2015
+Program Changes
+- add help option -h
+- add print version option -v
+- add option to specify custom ini -i inifile
+- add -nojffs option to NOT backup jffs
+- add -clk option to include clkfreq var (only in backup mode) - thanks noric
+- consistency check for script/ini versions
+- save txt files of all and user only nvram variables
+- remove SNMP vars if not supported on restore
+- update fork specific vars for removal on non-fork code
+- update QuickStart guide
+INI file Changes
+- add PPT server vars from ASUS merge
+- correct varname typo (MULTIFILTER_ALL) in [Parental Controls] - thanks pieland
+- add [AICloud settings] section - suggestion by Denny
+- add [SNMP settings] section - suggestion by pieland
+- add missing nat_redirect_enable - thanks noric
+- add missing wan_unit (for Dual Wan configs) - thanks noric
+- include sample user nvram-sample.ini with only basic settings
+
+
+Version 14	7-February-2015
+- add version info to save/restore scripts
+- escape back-quote and double-quote characters
+- change handling of embedded lf chars
+- add short delay after commit before exiting script
+- changed name of inifile to indicate code family supported
+- changed name of exception script to indicate code family supported
+- pass codelevel to nvram-user.sh
+- log results of save and restore scripts to syslog
+- force jffs on for move to 378 code if off, leave scripts off
+  if jffs already active, turn on scripts
+- use new vpn_server_start var for move to 378 code
+- updated Quickstart
+
+Version 12	1-February-2015
+- do not hardcode jffs restore directory parent
+- add nvram variable identifying previous buildno
+- improved logic for code specific restores
+- add call to user exit script, nvram-user.sh for custom processing
+- updated QuickStart for user script (Advanced Users)
+
+Version 11	29-January-2015		Downloads: 115
+- add Merlin build unique variables
+- add 374 fork unique variables
+- added code specific restore
+	- create single merged filter maclist for 378 code
+	- delete unused variables depending on code level
+- added Changelog and sha256 hashes in download directory
+- minor updates to QuickStart
+- AC3200 support not yet understood (use at own risk)
+
+Version 10	18-January-2015		Downloads: 247
+- add versioned backup of /jffs directory if found
+- new script jffs-restore.sh to restore the jffs backup
+- updated QuickStart guide for jffs backup (please read)
+- added section for Astrill VPN - thanks Eet_46
+- updated file headers to reflect actual release numbering
+
+Version 9	24-December-2014	Downloads: 494
+- add chanspec vars - thanks ocram59,rlcronin
+- add TxPower vars for 374 code (txpower for 376 code already present)
+- update/consolidate [MAC Filters] vars
+- remove unnecessary _unit vars
+
+Version 8	17-December-2014	Downloads: 139
+- add access list for smb/ftp - thanks snb
+- add [DNS Filter] section - thanks snb
+- add [Parental Controls] section
+- updated QuickStart to check file permissions on SMB/FTP shares
+- updated QuickStart with clear text password reminder
+
+Version 7	12-December-2014	Downloads: 22
+- add WPS vars to ini [Wireless - General] - thanks Gerr
+
+Version 6	05-December-2014	Downloads: 115
+- save/restore correctly handles '$' in nvram variables
+- Update QuickStart.txt to include current path in commands - thanks to longstaff
+
+Version 5a	23-November-2014	Downloads: 106
+- Updated QuickStart.txt files - feedback by tsunami2311 - thanks!
+- No changes to program/ini files
+
+Version 5	21-November-2014	Downloads: 49
+- Add QOS section - by ocram59
+- Add modem vars to DualWan section
+
+Version 4	05-November-2014	Downloads: 150
+- Add Wireless-Professional section
+- Add Guest Network section
+- Add Switch Control section
+- Add SAMBA access vars - by ocram59
+- Add FTP access vars
+- Add Migration mode to exclude some vars - runtime switch -M (nvram-save.sh -M)
+
+Version 3a	28-October-2014		Downloads: 52
+Version 3	28-October-2014		Downloads: 31
+- Fix getting MAC address for AC87 routers
+
+Version 2	28-October-2014		Downloads: 22
+- Adds the last two bytes of the router MAC address to the restore script name so multiple routers can have their settings stored on the same USB stick.
+- Includes a step-by-step QuickStart.txt file for use with a USB stick.
+- Adds custom_clientlist to the saved nvram vars (Thanks JGrana)
+
+Version 1	15-September-2014	Downloads: 106
+- Initial release
