@@ -1,0 +1,372 @@
+QUICKSTART GUIDE
+Release 30.3
+
+========================================================================
+General Information / Warnings
+========================================================================
+
+Windows users:  In Linux, the operating system of the router,
+all commands and other inputs are case sensitive.  If you are unfamiliar with
+Linux, please make sure to enter the commands, filenames, volume labels, etc.
+exactly as shown.
+
+Passwords:  Passwords and keys entered through the GUI are saved in
+nvram in clear text, and are copied in clear text to the restore script.
+Please take whatever measures you deem appropriate to protect this data.
+
+Share Permissions:  Share permissions for SMB and FTP access are not saved
+in nvram, but are read/written directly from the shared resource.  While
+the access lists are saved/restored, it may be necessary to reset the access
+permissions after a restore.
+
+Space Management:  This utility will save multiple versioned backups of
+the user nvram and jffs directory (if jffs is active) by router.  It is the
+users responsibility to perform space management on the USB stick as required.
+
+JFFS Restore:  Some of the later code levels also clear jffs during a restore to factory
+defaults. (Things such as OpenVPN certificates and TrendMicro data are now stored in the
+jffs space. In order to fully restore your system, you therefore need to run
+jffs-restore.sh following nvram-restore.sh
+
+MAC list filters:  There have been multiple changes in the handling of MAC list filters
+between various firmware releases.  Most cases will be handled correctly by the exception
+processing during a restore.  However, if the MAC filters are incorrect after the restore,
+they may be cleared by running clear-maclist.sh
+
+Additional Options:  For advanced users, the nvram-save.sh script now has
+several new options.  These can be displayed through a help option, nvram-save.sh -h
+
+	NVRAM User Save/Restore Utility
+        nvram-save.sh Version 26.1
+        Options: -h           this help msg
+                 -v           Print version/perform consistency check
+                 -b           Backup mode - save for restore to same router (default)
+                 -m           Migration mode - transfer settings to another router
+                 -i inifile   Specify custom nvram variable ini file
+                 -clk         Include clkfreq/overclock setting (Backup mode only)
+                 -nojffs      Skip backup of jffs storage
+                 -nouser      Skip execution of user exit script
+
+Package Contents:
+nvram-save.sh			Main user script
+nvram-excp-merlin.sh	Script called automatically during restore for code level specific processing
+nvram-restore.sh		User script to restore saved user NVRAM variables
+jffs-restore.sh			User script to restore jffs directory
+nvram-merlin.ini		NVRAM variable control file
+nvram-sample.ini		Example user NVRAM control file with only basic variables
+nvram-user-sample.sh	An example user exit script that creates a tar backup of the jffs directory
+clear-maclist.sh		Script to clear MAC list filters in case of problems detecting
+							the correct format (multiple changes between firmware levels)
+save-mynvram.sh			A small script that can save/restore a small number of user specified nvram settings
+QuickStart.txt			Documentation in DOS/WIN format
+Changelog.txt			Version history in DOS/WIN format
+
+========================================================================
+Step (1) - Prepare the USB Stick
+========================================================================
+
+- Plug the USB stick into your main computer.  Format the USB stick and give it a volume label of ASUS
+
+	NOTE1:  Any volume label may be used.  If you change the label, use your new label in place of 'ASUS' in the
+	remainder of this guide.
+
+	NOTE2: Most USB sticks come pre-formatted as FAT32 or exFAT.  exFat is generally not supported by the ASUS
+	routers, and FAT32 does not support access permissions under Linux (access is global).
+	For most Windows users, NTFS is preferred so that the USB stick may be easily transferred to a Windows PC.
+	If using an Apple OS, MS-DOS format may be preferred (which is really FAT32) for PC compatibility.
+	Of course, advanced users may format the stick to any desired type, including Linux EXT2,
+	EXT3 or EXT4. Note that some early MIPS based routers, such as the N66U, do not support EXT4 disk format.
+
+- Remove the USB stick from your computer and plug it into the router
+
+========================================================================
+Step (2) - SSH into the router
+========================================================================
+SSH access to the router is required to execute the save and restore scripts.
+
+- If SSH is not enabled on the router go to the Administration/System page
+(default is http://192.168.1.1/Advanced_System_Content.asp)
+and click the radio button to enable SSH, and then click Apply to save the change.
+
+- Open an SSH session on your computer using an SSH client such as PuTTY, WinSCP, FileZilla, MobaXterm, etc.
+
+========================================================================
+Step (3) - Install NVRAM Save/Restore Utility Menu
+========================================================================
+Copy and paste the command below into an SSH session:
+
+/usr/sbin/curl --retry 3 "https://raw.githubusercontent.com/Xentrk/nvram-save-restore-utility/master/nsrum" -o "/jffs/scripts/nsrum" && sleep 5 && chmod 755 /jffs/scripts/nsrum && sh /jffs/scripts/nsrum
+
+One the menu is installed, you can type 'nsrum' to run the menu from the command line.
+
+========================================================================
+Step (4) - Install NVRAM Save/Restore Utility Files
+========================================================================
+Select "Option 1 - Install NVRAM Save/Restore Utility Files"
+
+========================================================================
+Step (5) - Run the script to save the user nvram and jffs directory
+========================================================================
+
+- At the SSH prompt enter
+
+The root level directory on the USB drive is /tmp/mnt. The firemware creates a symbolic link at the root level directory
+to point /mnt to /tmp/mnt.
+
+Type 'nsru' to access the installation directory on /tmp/mnt directory.
+
+Alernatively, you can access the directory using the 'cd' command.
+
+ls /mnt            (you should see the name of the volume label of the USB stick - ASUS)
+cd /mnt/ASUS/nsru       (change to the USB stick directory)
+
+By default, all of the nvram utility data files are placed in the current working directory, /mnt/ASUS/nsru.  The installation
+will also create a backup subdirectory (/mnt/ASUS/nsru/backup) to keep the generated save/restore files separate from the
+utility scripts.
+
+To start the backup process
+
+./nvram-save.sh         	This executes the script in Backup Mode, you should see Saving messages.
+./nvram-save.sh -M or -m    This executes the script in Migration Mode, for moving the settings from one router to another.
+							In this mode some settings are not copied, for example the wireless transmit power.
+
+You may also perform a Migration Mode restore using the data saved in normal Backup Mode. The -M or -m migration option is
+still supported however for backwards compatibility.
+
+- You now have a script on the USB that will restore the user settings named
+nvram-restore-yyyymmddhhmm_MODEL-macid.sh
+
+  where yyyymmddhhmm is the timestamp of the saved setting
+  MODEL is the router model (e.g. RT-AC88U)
+  macid In Backup Mode, this is the last two bytes of the router MAC address (for example E1F2)
+  In Migration Mode, this will be MIGR
+
+- If you want to look at the contents of the restore script....
+cat nvram-restore-yyyymmddhhmm_MODEL-macid.sh | more
+
+The following files are also created in the data directory:
+
+nvram-all-yyyymmddhhmm_MODEL-macid.txt which is a sorted nvram show output of all the nvram variables and their values.
+	Note that this 	file also contains system level variables which should not be modified by the end user.
+
+nvram-usr-yyyymmddhhmm_MODEL-macid.txt which is a text listing of the variables and their values saved by the utility organized by
+	the save categories.
+
+nvram-ini-yyyymmddhhmm_MODEL-macid.txt which contains a copy of the ini file used to create the nvram-restore script.
+
+A log file, nvram-util.log is also created in the current directory which logs the run activity of
+nvram-save.sh (including the jffs backup), nvram-restore.sh and jffs-restore.sh which will be executed later.
+NOTE: Existing run data IS NOT migrated to the nvram-util.log file, but an existing nvram-util.log file will be
+used if present.
+
+NOTE: With the introduction of a 'Clean restore' (described in the restore section) it will be easier to view the nvram-usr
+text file to determine the contents of any saved nvram variable.
+
+At this point, you have a saved copy of the nvram variables which have been set through the Web GUI.  Entries will also
+be made in the router syslog documenting the running of the utility.
+
+If you have enabled JFFS storage on the router, a copy of the /jffs directory will also be saved to the USB stick.
+- Name of the saved directory is /jffs-yyyymmddhhmm_MODEL-macid, where macid is the same previously defined
+
+You can now do a Reset to factory defaults on the router, remove the USB stick as a
+backup or take the USB stick to another router to transfer the settings if run in Migration mode.
+
+If you are preparing for a code update, the following steps are recommended:
+- Reset to factory defaults (optional, but the safest to reset before code load as well)
+- Load new code via router gui
+- Reset to factory defaults (this is the important reset and must be performed prior to the restore)
+
+========================================================================
+Step (6) - Run the script to restore the user nvram and/or the jffs directory
+========================================================================
+- To execute the restore
+
+Plug the USB stick into the router.
+
+Go to the Administration/System page
+(default is http://192.168.1.1/Advanced_System_Content.asp)
+
+If you performed a factory reset:
+	- SSH may now be disabled and must be re-enabled.
+	- If you had previously changed the Router Login Name from the default 'admin', you should change
+	  it back to be the same as when you performed the nvram-save step to use the customized login.
+	  Otherwise, the login/password will be admin/admin.
+
+Open an SSH prompt as described in Step (2) above.
+
+ls /mnt                 (you should see the name of the volume label of the USB stick - ASUS)
+cd /mnt/ASUS/nsru       (change to the USB stick directory)
+
+Executing
+
+./nvram-restore.sh
+
+without any parameters will scan the nvram-util.log file and find the latest saved values and ask you to confirm the
+restore.
+
+If you did not specify the migration option during the save, you will now be presented with an additional option:
+- "Perform a migration restore [Y/N]?"
+This will perform a migration restore from a full save backup, excluding the same nvram settings that would be excluded
+if a migration save had been initially performed.  A message will be presented if the save file does not support a migration
+restore.
+
+If you do not select a migration restore, the following option will be presented:
+- "Perform a clean restore and remove ununsed NVRAM variables [Y/N]?"
+Answering Y (yes) here will only restore those variables which already exist in the current nvram.   This can be useful,
+for example, after doing a factory reset on a lower level of code, and you want to eliminate nvram variables which were
+only used on a later level or fork.
+
+You can also provide the yyyymmddhhmm_MODEL-macid parameter on the command line to load a specific set of saved values
+
+You may also continue to use the utility as before, and execute the a specific restore script  (and specify -clean or -migr
+as a single parameter to perform a clean restore or migration restore as described above, the default is to restore all values).
+
+./nvram-restore-yyyymmddhhmm_MODEL-macid.sh        (execute the restore to the same router) or
+./nvram-restore-yyyymmddhhmm_MODEL-macid.sh -clean (execute a clean restore to the same router) or
+./nvram-restore-yyyymmddhhmm_MODEL-macid.sh -migr  (execute a migration restore to a new router) or
+./nvram-restore-yyyymmddhhmm_MODEL-MIGR.sh         (execute the restore to a new router)
+
+The restore will also look at the code level where the save was performed and the currently active
+code level and will make adjustments as necessary for documented code specific variables (automatically calls
+nvram-excp-merlin.sh).
+
+WARNING:  If doing a migration restore, make sure both your old router and new router are not
+on the network at the same time.   Having both active could result in duplicate resources, such
+as SSIDs and DHCP servers.  Doing a migration restore will also automatically be performed with the -clean option.
+
+If you wish to restore your /jffs directory this must be done manually via a second script jffs-restore.sh
+- make sure JFFS is enabled on the router
+
+To restore the entire directory
+Open a SSH prompt as described in Step (2) above.
+
+ls /mnt                 (you should see the name of the volume label of the USB stick - ASUS)
+cd /mnt/ASUS/nsru       (change to the USB stick directory)
+
+Executing
+
+./jffs-restore.sh
+
+without any parameters will scan the nvram-util.log file and find the latest jffs backup directory and ask you to
+confirm the restore.   You can also provide the yyyymmddhhmm-macid code on the command line to restore a specific
+backup directory.
+
+./jffs-restore.sh yyyymmddhhmm_MODEL-macid
+			(copy the entire backup /jffs-yyyymmddhhmm_MODEL-macid directory from the USB stick to the router flash,
+			 replacing the current /jffs contents)
+
+OR
+
+You can access the /tmp/ASUS/nsru/jffs-yyyymmddhhmm_MODEL-macid and copy individual files as needed back to the router /jffs directory
+or subdirectories.
+
+Entries are also made in the router syslog and nvram-util.log documenting the running of the nvram-restore or jffs-restore.
+
+
+========================================================================
+Saving the data for later use
+========================================================================
+Of course, you can keep the data on the USB Stick for future use/backup.
+
+If you wish, you can also copy the data off the USB Stick back to your PC for safe keeping.
+If you do this, and later copy the data back to a USB Stick for use, it is likely you will
+need to restore the correct permissions for the scripts.
+
+Plug the USB stick with the copied files into the router
+Open an SSH prompt as described in Step (2) above
+ls /mnt                 (you should see the name of the volume label of your USB stick - ASUS for example)
+cd /mnt/ASUS            (change to the USB stick directory, where ASUS is the volume label of the USB stick)
+chmod 755 ./*.sh        (this ensures the package script files are executable)
+						If using a FAT32 formatted USB stick, you may skip this step.
+                        Executing this command on a USB stick with these formats will generate
+						a permissions error which can safely be ignored.
+
+========================================================================
+Errata and Version Specific Information
+========================================================================
+- Using FAT32 disk format for the USB stick
+	Prior to Release 22 for this disk format, you may experience some errors as the scripts attempt to ensure that
+	the correct permissions are setup for the files. These errors show as CHMOD failures and can be safely ignored.
+	As of Release 22, these errors will be supressed.
+
+- Backup directory
+	The generated save/restore files are stored in a 'backup' subdirectory /tmp/mnt/ASUS/nsru/backup
+
+- Syslog logging of utility runs
+	As of Release 14, entries are also made in the router syslog documenting the running of the nvram utilities
+
+- Clean Restore
+	Clean restore was added in release 18, and restores only those nvram settings which are initialized by a factory reset
+
+- Migration Restore from full save
+	This option was added in release 25, and will be available during the nvram-restore execution.  The save file must also
+	have been generated with release 25.2 or above.
+
+- Logging of restore operations
+	As of Release 14, entries are also made in the router syslog documenting the running of the nvram-restore or jffs-restore.
+	As of Release 16, entries are also made in the nvram-util.log file documenting the running of the nvram-restore
+	or jffs-restore.
+
+- SAMBA and FTP with Guest Access
+	Following a nvram-restore operation, if guest access was specified for SAMBA or FTP, the router will present an alert and you
+	must re-verify your desire to allow guest access.   This is done to ensure the security of router/LAN.
+
+========================================================================
+INI File Format and Options
+========================================================================
+The INI file format for the nvram definitions follows the 'standard' format of a section header followed by data.  For example
+
+[System - Basic]
+time_zone_dst
+time_zone
+time_zone_dstoff
+
+There are additional controls which can be added.
+
+- To exclude an entire section from backup, comment # the section header
+#[System - Basic]
+time_zone_dst
+time_zone
+time_zone_dstoff
+
+- To exclude an indivdual nvram setting from backup, comment # that setting
+[System - Basic]
+#time_zone_dst
+time_zone
+time_zone_dstoff
+
+- To exclude the setting from being saved during a migration save (or restored during a migration restore), prefix it with a @.
+  This is only valid for individual   settings and is not valid on the section header.
+[System - Basic]
+@time_zone_dst
+time_zone
+time_zone_dstoff
+
+- To force a setting to always be included in the restore, even if it would normally be excluded on a 'clean' restore,
+  prefix the setting with a + .  This may also be used to preserve custom nvram settings across a factory reset.
+  This is only valid for individual settings and is not valid on the section header.
+[System - Basic]
++time_zone_dst
+time_zone
+time_zone_dstoff
+
+- To force a setting to always be included in the save, even if it is an empty value, prefix the
+  setting with a % .  This will force some variables which may have a valid empty setting to be saved/restored.
+  This is only valid for individual settings and is not valid on the section header.
+[System - Basic]
+%time_zone_dst
+time_zone
+time_zone_dstoff
+
+- To combine the above flags and force both the save of an empty value and force it to be restored even if
+  it is not present after a factory reset, prefix the setting with a & .
+  This is only valid for individual settings and is not valid on the section header.
+[System - Basic]
+&time_zone_dst
+time_zone
+time_zone_dstoff
+
+- The last section header in the default nvram-merlin.ini file is for user added nvram settings, such as may be used in custom
+  scripting.   For example (also using the force save prefix) for a user nvram variable 'blacklist_enable'
+[User Adds]
++blacklist_enable
