@@ -1,5 +1,4 @@
 #!/bin/sh
-
 # nvram-save.sh
 # Save nvram user variables for restore after factory reset
 # shellcheck disable=SC2034 # ignore msg about unused colors
@@ -594,6 +593,7 @@ NVRAM_BYTES=0
 ###########################################################################################################################################
 echo "" >>"$nvramusrfile"
 
+#set -x
 echo ""
 processvar=1
 while read -r var; do
@@ -749,7 +749,7 @@ while read -r var; do
       ##############################################################################################################
       # Xentrk test POSIX changes
       #var=${var:1:$vlength}
-      var=$(echo "$var" | awk -v seqnumb="$vlength" '{ string=substr($0, 1, seqnumb); print string; }')
+      var=$(echo "$var" | awk -v seqnumb="$vlength" '{ string=substr($0, 2, seqnumb); print string; }')
       if [ "$linetype" = "%" ] || [ "$linetype" = "&" ]; then
         forcevar=1
       fi
@@ -944,6 +944,7 @@ fi
 
 # Process user exit if it exists
 if [ -f "$cwd/nvram-user.sh" ] && [ "$userscript" -eq 1 ]; then
+  set -x
   ############################################################################################Martineau Hack ######################################
   sh "$cwd/nvram-user.sh" "$rundate$UNDERSCORE$MYROUTER$dash$macid" # don't need to pass dir anymore: $dwd"
   #sh $cwd/nvram-user.sh $dash$rundate$dash$macid $dwd
