@@ -437,7 +437,8 @@ if [ "$macid" != "MIGR" ]; then # skip check for migratino mode
     ############################################################################################Martineau Hack #####################################
 
     #echo "if [ -z \"\$(echo \$(basename \"\$0\") | grep \"\$(nvram get computer_name)\")\" ]; then"
-    echo "if [ -z \"\$(echo \"\$(basename \"\$0\")\" | grep \"\$(nvram get model)\")\" ]; then"
+    #echo "if [ -z \"\$(echo \"\$(basename \"\$0\")\" | grep \"\$(nvram get model)\")\" ]; then"
+    echo "if ! basename \"\$0\" | grep \"\$(nvram get model)\"; then"
     #echo "echo -e \"$cBRED$aBLINK\""
     echo "printf '%b' \"$cBRED$aBLINK\""
     #echo "echo -e \"\n\a\tRestore Router Model MISMATCH - ABORTing\""
@@ -949,7 +950,6 @@ fi
 
 # Process user exit if it exists
 if [ -f "$cwd/nvram-user.sh" ] && [ "$userscript" -eq 1 ]; then
-  set -x
   ############################################################################################Martineau Hack ######################################
   sh "$cwd/nvram-user.sh" "$rundate$UNDERSCORE$MYROUTER$dash$macid" # don't need to pass dir anymore: $dwd"
   #sh $cwd/nvram-user.sh $dash$rundate$dash$macid $dwd
