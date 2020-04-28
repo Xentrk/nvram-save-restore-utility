@@ -448,6 +448,7 @@ if [ "$macid" != "MIGR" ]; then # skip check for migratino mode
     echo "fi"
   } >>"$outfile"
 fi
+exit 0
 
 if [ "$V384XX" != "1" ]; then
   {
@@ -795,7 +796,9 @@ while read -r var; do
 
       if [ $clean = 1 ]; then
         grepstring="(\$op || grep -q \"$var\" \"\$tmpfile\") &&"
-        skipstring="|| echo -e \"\tSkipping $var\""
+        #skipstring="|| echo -e \"\tSkipping $var\""
+        skipstring="|| printf '%s\n' \"Skipping $var\""
+
       else
         grepstring=""
         skipstring=""
@@ -808,7 +811,8 @@ while read -r var; do
         #valuex=${valuex//$'\n'/\\n} # convert lf to escape sequence
         valuex=$(echo "$valuex" | sed 's/\n/\\n/g') # convert lf to escape sequence
 
-        echo "$grepstring \$($setstring $var=\"\$(echo -e \"$valuex\")\") $skipstring" >>"$outfile"
+        #echo "$grepstring \$($setstring $var=\"\$(echo -e \"$valuex\")\") $skipstring" >>"$outfile"
+        printf "$grepstring \$($setstring $var=\"\$(printf '%s\n' \"$valuex\")\") $skipstring" >>"$outfile"
         echo "$var=\"$value\"" >>"$nvramusrfile"
       else
         echo "$grepstring \$($setstring $var=\"$value\") $skipstring" >>"$outfile"
@@ -838,7 +842,8 @@ if [ "$V384XX" != "1" ]; then
   if [ -f "$cwd/$excfile" ]; then
     ########################################################################################Martineau hack######################################
     {
-      echo "echo -en \"$cBYEL\""
+      #echo "echo -en \"$cBYEL\""
+      printf '%s\n' "printf '%b\n' \"$cBYEL\""
       ######################################################################################################################################
       echo "logger -s -t \"\$scr_name\" \"Applying code level exceptions $cwd/$excfile\""
       echo "sh $cwd/$excfile $macid"
