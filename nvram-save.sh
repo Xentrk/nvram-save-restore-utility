@@ -449,7 +449,6 @@ if [ "$macid" != "MIGR" ]; then # skip check for migratino mode
     echo "fi"
   } >>"$outfile"
 fi
-exit 0
 
 if [ "$V384XX" != "1" ]; then
   {
