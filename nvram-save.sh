@@ -429,7 +429,7 @@ fi
 
 echo "codelevel=$codelevel" >>"$outfile"
 
-if [ "$macid" != "MIGR" ]; then # skip check for migratino mode
+if [ "$macid" != "MIGR" ]; then # skip check for migration mode
   {
     # Xentrk: Not sure what the purpose of the grep is? Value is not assigned to a parm
     #echo "\$(grep \"#Version=\" \"$saveinfile\")"
@@ -464,13 +464,13 @@ if [ "$V384XX" != "1" ]; then
     echo
   } >>"$outfile"
 
-  if [ $clean = 1 ]; then
+  if [ "$clean" = 1 ]; then
     {
       echo "tmpfile=/tmp/nvram-clean.lst"
       echo "# Migrate restore from full restore supported"
       echo "# Clean restore supported"
     } >>"$outfile"
-    if [ $migrate = 1 ]; then
+    if [ "$migrate" = 1 ]; then
       echo "op=\"-clean\"" >>"$outfile"
     else
       echo "op=\$1" >>"$outfile"
@@ -483,27 +483,27 @@ if [ "$V384XX" != "1" ]; then
       echo "fi"
       echo "if [ \"\$op\" = \"-migr\" ] && [ -e $saveinfile ]; then"
       echo "logger -s -t \"\$scr_name\" \"Migration option specified\""
-      echo "while read line; do" ### remove migrate excludes from reference
+      echo "while read -r line; do" ### remove migrate excludes from reference
 
       # Xentrk test POSIX Changes
       #echo "linetype=\${line:0:1}"
-      echo "linetype=\$(echo \"\$line\" | awk  \'{ string=substr(\$0, 1, 1); print string; }\' )"
+      echo "linetype=\$(echo \"\$line\" | awk '{ string=substr(\$0, 1, 1); print string; }' )"
 
       echo "if [ \"\$linetype\" = \"@\" ]; then"
       #echo "lvar=\$(echo \${#line})"
       echo "lvar=\${#line}"
       #echo "let vlength=lvar-1"
-      echo "vlength=lvar-1"
+      echo "vlength=\$((lvar-1))"
 
       # Xentrk test POSIX Changes
       #echo "var=\${line:1:\$vlength}"
-      echo "var=\$(echo \"\$line\" | awk -v seqnumb=\"\$vlength\" \'{ string=substr(\$0, 1, seqnumb); print string; }\' )"
+      echo "var=\$(echo \"\$line\" | awk -v seqnumb=\"\$vlength\" '{ string=substr(\$0, 1, seqnumb); print string; }' )"
 
       echo "sed -i \"/\$var/d\" \"\$tmpfile\""
       echo "fi"
       echo "done <$saveinfile"
       echo "fi"
-      echo "while read line; do" ### keep vars needed for exclusion processing
+      echo "while read -r line; do" ### keep vars needed for exclusion processing
 
       # Xentrk test POSIX Changes
       # echo "linetype=\${line:0:1}"
@@ -513,11 +513,11 @@ if [ "$V384XX" != "1" ]; then
       #echo "lvar=\$(echo \${#line})"
       echo "lvar=\${#line}"
       #echo "let vlength=lvar-1"
-      echo "vlength=lvar-1"
+      echo "vlength=\$((lvar-1))"
 
       # Xentrk test POSIX Changes
       # echo "var=\${line:1:\$vlength}"
-      echo "var=\$(echo \"\$line\" | awk -v seqnumb=\"\$vlength\" \'{ string=substr(\$0, 1, seqnumb); print string; }\' )"
+      echo "var=\$(echo \"\$line\" | awk -v seqnumb=\"\$vlength\" '{ string=substr(\$0, 1, seqnumb); print string; }' )"
 
       echo "echo \"\$var\" >>\"\$tmpfile\""
       echo "fi"
