@@ -2,7 +2,7 @@
 ####################################################################################################
 # Script: nsrum
 # Author: Xentrk
-# Last Updated Date: 15-February-2020
+# Last Updated Date: 30-April-2020
 #
 # Description:
 #  Install NVRAM Save/Restore Utility Files.
@@ -25,8 +25,6 @@ VERSION=30.3.0
 GIT_REPO="nvram-save-restore-utility"
 GITHUB_DIR="https://raw.githubusercontent.com/Xentrk/${GIT_REPO}/master"
 NSRU_LOCATION=$(ls -d -- /tmp/mnt/*/nsru 2>/dev/null)
-#NSRU_LOCATION="$(grep -ow "NSRU_LOCATION.*" /mnt/NSRU_LOCATION 2>/dev/null | grep -vE "^#" | awk '{print $1}' | cut -c 15-)"
-#NSRU_LOCATION=$(find /tmp/mnt -type d -name "nsru")
 
 ANSIColours() {
 
@@ -418,8 +416,10 @@ Download_File() {
     fi
   else
     printf '%b%s%b download failed with curl error %s\n' "$cGRE" "$FILE" "$cRESET" "$STATUS"
-    printf 'Rerun the install %bx3mRouting for LAN Clients%b option\n' "$cGRE" "$cRESET" "$cGRE" "$cRESET"
-    exit 1
+    echo
+    echo "Press enter to continue"
+    read -r
+    Welcome_Message
   fi
 }
 
