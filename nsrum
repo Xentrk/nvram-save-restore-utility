@@ -303,7 +303,7 @@ Update_Version() {
             printf 'MD5 hash of %b%s%b does not match - downloading %b%s%b\n' "$cGRE" "$FILE" "$cRESET" "$cGRE" "$FILE" "$cRESET"
             Download_File "$NSRU_LOCATION" "$FILE"
           else
-            printf 'MD5 hash of %b%s%b matches - skiping download %b%s%b\n' "$cGRE" "$FILE" "$cRESET" "$cGRE" "$FILE" "$cRESET"
+            printf 'MD5 hash of %b%s%b matches - skipping download %b%s%b\n' "$cGRE" "$FILE" "$cRESET" "$cGRE" "$FILE" "$cRESET"
           fi
         fi
 
