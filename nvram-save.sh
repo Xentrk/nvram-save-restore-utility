@@ -825,10 +825,7 @@ while read -r var; do
 done <$infile
 ############################################################################################Martineau Hack ######################################
 TOTALBYTES=$((TOTALBYTES + NVRAM_BYTES))
-#echo -en "$cBGRE" "$(printf "%2d" $((DIFFTIME % 60))) secs ($(printf "%-3s" $NVRAM_CNT) variables, Bytes=$NVRAM_BYTES \tTotal=$(printf "%-5d" $TOTALBYTES))\n"
-#LINE788
-
-printf '%b%2d%s%-3s%18s%d\t%s%-5d%s\n' "$cBGRE" "$((DIFFTIME % 60))" " secs (" "$NVRAM_CNT" "WARiables, Bytes=" "$NVRAM_BYTES" "Total=" "$TOTALBYTES" ")"
+printf '%b%2d%s%-3s%18s%d\t%s%-5d%s\n' "$cBGRE" "$((DIFFTIME % 60))" " secs (" "$NVRAM_CNT" "variables, Bytes=" "$NVRAM_BYTES" "Total=" "$TOTALBYTES" ")"
 ###########################################################################################################################################
 echo "" >>"$outfile"
 echo "echo \"\"" >>"$outfile"
