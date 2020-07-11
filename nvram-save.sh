@@ -8,6 +8,9 @@
 # Changelog
 #------------------------------------------------
 # see nvram-save.sh
+# Version 30.3.1			  11-July-2020
+# - nvram vars in the ini file with a linetype of "@" were not getting saved in backup mode
+#
 # Version 30.3			  27-March-2020
 # - Xentrk POSIX Updates
 #
@@ -128,8 +131,8 @@
 # - Initial release
 #
 #------------------------------------------------
-VERSION=30.3.0
-version=30.3.0
+VERSION=30.3.1
+version=30.3.1
 ##########Martineau Hack ######################################
 ANSIColours() {
 
@@ -706,37 +709,26 @@ while read -r var; do
       # echo "Skipping "$var
       continue
     else
-      vlength=$((lvar - 1))
-      # Xentrk test POSIX changes
-      #var=${var:1:$vlength}
-      var=$(echo "$var" | awk -v seqnumb="$vlength" '{ string=substr($0, 1, seqnumb); print string; }')
+      var=${var#*@} # Need to drop the @ as the first character before getting nvram value
+      forcevar=1
     fi
     #fi
     ;;
     ###################################################################################Martineau Hack###################
   ">") # Unset NVRAM
     vlength=$((lvar - 1))
-    # Xentrk test POSIX Changes
-    # var=${var:1:$vlength}
     var=$(echo "$var" | awk -v seqnumb="$vlength" '{ string=substr($0, 1, seqnumb); print string; }')
-    # Xentrk POSIX update SC2143
-    # if [ -n "$(nvram show 2>/dev/null | grep "$var")" ]; then # Only allow the unset if it actually exists...
     if nvram show 2>/dev/null | grep -q "$var"; then # Only allow the unset if it actually exists...
       echo "echo \"Unset $var\"" >>"$outfile"
-      #echo -e "nvram unset" "$var" >>"$outfile"
       printf '%s\n' "nvram unset $var" >>"$outfile"
       continue
     else
-      #echo -e "#nvram unset" "$var" "ignored" >>"$outfile" # Hmm should issue the unset during the restore regardless?
       printf '%s\n' "#nvram unset $var ignored" >>"$outfile" # Hmm should issue the unset during the restore regardless?
       continue
     fi
     ;;
   "?") # HND NVRAM
-    #Xentrk test POSIX changes
-    #var=${var:1}
     var=${var#?}
-    #echo -e "[ \"\$(uname -m)\" = \"aarch64\" ] && logger -st \$(basename \"\$0\")" \"Warning: \'"$var""' is now in /jffs/nvram\" " >>"$outfile"
     printf '%s\n' "[ \"\$(uname -m)\" = \"aarch64\" ] && logger -st \"\$(basename \"\$0\")\" \"Warning: '$var' is now in /jffs/nvram\" " >>"$outfile"
 
     ;;
