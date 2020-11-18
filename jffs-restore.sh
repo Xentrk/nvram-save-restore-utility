@@ -102,7 +102,7 @@ ANSIColours() {
 }
 
 ANSIColours
-VERSION=30.3.0
+VERSION=30.4.0
 ########################################################################################################################
 jffs_version=$1
 if [ "$(echo "$jffs_version" | awk '{ string=substr($0, 1, 4); print string; }')" = "jffs" ]; then
