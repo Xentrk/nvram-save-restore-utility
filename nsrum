@@ -262,16 +262,7 @@ Confirm_Update() {
 Update_Version() {
 
   if [ -d "$NSRU_LOCATION" ]; then
-    for FILE in clear-maclist.sh \
-      jffs-restore.sh \
-      nvram-excp-merlin.sh \
-      nvram-hnd-migr.sh \
-      nvram-merlin.ini \
-      nvram-restore.sh \
-      nvram-sample.ini \
-      nvram-save.sh \
-      nvram-user-sample.sh \
-      save-mynvram.sh; do
+    for FILE in clear-maclist.sh jffs-restore.sh nvram-excp-merlin.sh nvram-hnd-migr.sh nvram-merlin.ini nvram-restore.sh nvram-sample.ini nvram-save.sh nvram-user-sample.sh save-mynvram.sh; do
       if [ -s "${NSRU_LOCATION}/${FILE}" ]; then
         if [ "$1" = "no_force" ]; then
           if [ "$FILE" != "clear-maclist.sh" ]; then
