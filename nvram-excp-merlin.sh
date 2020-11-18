@@ -5,6 +5,9 @@
 # Supports OEM and Merlin firmware ONLY
 # Changelog
 #------------------------------------------------
+# Version 30.4		  18-November-2020
+# - version only update
+#
 # Version 30.3		  1-January-2020
 # - version only update
 #
