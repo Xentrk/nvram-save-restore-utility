@@ -1,8 +1,12 @@
 Changelog
 ---------
+Version 30.4	  18-November-2020
+Program Changes
+- update nvram-merlin.ini to include john9547 fork nvram parameters
+
 Version 30.3	  10-February-2020
 Program Changes
-- POSIX and code updates for launch to SNBForum.
+- POSIX and code updates for launch to SNBForums.
 
 Version 30.1
 Program Changes

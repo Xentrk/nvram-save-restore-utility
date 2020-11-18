@@ -4,14 +4,17 @@
 # shellcheck disable=SC2034 # Ignore "color appears unused" msgs
 # shellcheck disable=SC2068 # Don't want to quote array $@
 ###########################################################################################################################################
-#Version=30.3.0
-VERSION=30.3.0
+#Version=30.4.0
+VERSION=30.4.0
 # nvram-restore.sh
 # General front end to calling generated nvram-restore-yyyymmdd-macid scripts
 # Supports OEM and Merlin firmware ONLY
 #
 # Changelog
 #------------------------------------------------
+# Version 30.4  18-November
+# - Include nvram variables from John's Fork
+#
 # Version 30.3			  12-January-2020
 # - Xentrk POSIX Updates
 #

@@ -2,7 +2,7 @@
 ####################################################################################################
 # Script: nsrum
 # Author: Xentrk
-# Last Updated Date: 30-April-2020
+# Last Updated Date: 18-November-2020
 #
 # Description:
 #  Install NVRAM Save/Restore Utility Files.
@@ -21,7 +21,7 @@
 # shellcheck disable=SC2034
 
 logger -t "($(basename "$0"))" "$$ Starting Script Execution ($(if [ -n "$1" ]; then echo "$1"; else echo "menu"; fi))"
-VERSION=30.3.0
+VERSION=30.4.0
 GIT_REPO="nvram-save-restore-utility"
 GITHUB_DIR="https://raw.githubusercontent.com/Xentrk/${GIT_REPO}/master"
 NSRU_LOCATION=$(ls -d -- /tmp/mnt/*/nsru 2>/dev/null)

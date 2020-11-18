@@ -7,7 +7,9 @@
 ###########################################################################################################################################
 # Changelog
 #------------------------------------------------
-# see nvram-save.sh
+# Version 30.4.0  18-November
+# - Include nvram variables from John's Fork
+#
 # Version 30.3.1			  11-July-2020
 # - nvram vars in the ini file with a linetype of "@" were not getting saved in backup mode
 #
@@ -131,8 +133,8 @@
 # - Initial release
 #
 #------------------------------------------------
-VERSION=30.3.1
-version=30.3.1
+VERSION=30.4.0
+version=30.4.0
 ##########Martineau Hack ######################################
 ANSIColours() {
 
