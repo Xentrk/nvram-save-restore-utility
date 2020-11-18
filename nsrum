@@ -396,8 +396,8 @@ Remove_Existing_Installation() {
 
 Download_File() {
 
-  DIR="$1"
-  FILE="$2"
+  DIR=$1
+  FILE=$2
 
   STATUS="$(curl --retry 3 -sL -w '%{http_code}' "${GITHUB_DIR}/${FILE}" -o "${DIR}/${FILE}")"
   if [ "$STATUS" -eq "200" ]; then
@@ -429,10 +429,10 @@ Exit_Message() {
 
 Update_Profile_Add() {
 
-  PARM="$1"
-  NSRU_LOCATION="$2"
-  CONFIG_DIR="$3"
-  PROFILE_FILE="$4"
+  PARM=$1
+  NSRU_LOCATION=$2
+  CONFIG_DIR=$3
+  PROFILE_FILE=$4
   ALIAS="$(echo "$PARM" | sed 's/alias//;s/=.*//;s/ //')"
 
   {
@@ -484,16 +484,7 @@ Install_Utility_Files() {
   INSTALL_DIRECTORY="${DEVICE}/nsru"
   #echo "NSRU_LOCATION=$INSTALL_DIRECTORY" >/mnt/NSRU_LOCATION
 
-  for FILE in clear-maclist.sh \
-    jffs-restore.sh \
-    nvram-excp-merlin.sh \
-    nvram-merlin.ini \
-    nvram-restore.sh \
-    nvram-hnd-migr.sh \
-    nvram-sample.ini \
-    nvram-save.sh \
-    nvram-user-sample.sh \
-    save-mynvram.sh; do
+  for FILE in clear-maclist.sh jffs-restore.sh nvram-excp-merlin.sh nvram-merlin.ini nvram-restore.sh nvram-hnd-migr.sh nvram-sample.ini nvram-save.sh nvram-user-sample.sh save-mynvram.sh; do
     Download_File "${DEVICE}/nsru" "$FILE"
   done
 
