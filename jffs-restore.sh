@@ -2,7 +2,7 @@
 # jffs-restore.sh
 # Save jffs directory for restore after factory reset
 # Supports OEM and Merlin firmware ONLY
-#Version=30.3.0
+#Version=30.4.0
 ############################################################################################Martineau Hack ######################################
 # shellcheck disable=SC2034 # Ignore "color appears unused" msgs
 # shellcheck disable=SC2012 # disable as the find version needed is on entware and does not work after factory reset. Use find instead of ls to better handle non-alphanumeric filenames.
@@ -10,6 +10,9 @@
 ###########################################################################################################################################
 # Changelog
 #------------------------------------------------
+# Version 30.4.0  18-November
+# - Include nvram variables from John's Fork
+#
 # Version 30.3			  18-January-2020
 # - Xentrk POSIX Updates
 #
