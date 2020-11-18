@@ -303,8 +303,6 @@ echo ""
 #### Xentrk
 #echo -e "$cBYEL"
 printf '%b' "$cBYEL"
-logger -s -t "$scr_name" "NVRAM User Save Utility - Version 30.3 POSIX Code Updates"
-logger -s -t "$scr_name" "NVRAM User Save Utility - Version 30.1 Martineau Hacked for v384.xx+!!"
 logger -s -t "$scr_name" "Saving $MYROUTER settings from firmware $codelevel"
 
 FIRMWARE=$(nvram get buildno | awk 'BEGIN { FS = "." } {printf("%03d%02d",$1,$2)}')
