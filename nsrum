@@ -277,7 +277,7 @@ Update_Version() {
                         serverver=$(/usr/sbin/curl -fsL --retry 3 "${GITHUB_DIR}/${FILE}" | grep "VERSION=" | grep -m1 -oE '[0-9]{1,2}([.][0-9]{1,2})([.][0-9]{1,2})')
                         if [ "$localver" != "$serverver" ]; then
                           printf 'New version of %b%s%b available - updating to %s\n' "$cGRE" "$FILE" "$cRESET" "$serverver"
-                          Download_File "$DIR" "$FILE"
+                          Download_File "$NSRU_LOCATION" "$FILE"
                         else
                           printf 'No new version of %b%s%b to update - latest is %s\n' "$cGRE" "$FILE" "$cRESET" "$serverver"
                         fi
