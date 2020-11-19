@@ -1,5 +1,5 @@
 #!/bin/sh
-#Version=30.3.0
+#Version=30.4.0
 # nvram-excp-merlin.sh
 # Adjust nvram parameters for code specific issues
 # Supports OEM and Merlin firmware ONLY
@@ -85,7 +85,7 @@
 # - (^374) delete fork specific variables
 #
 #------------------------------------------------
-VERSION=26.1
+VERSION=30.4.0
 scr_name=nvram-excp-merlin
 logger -s -t $scr_name "NVRAM Exception Processing - Version $VERSION"
 
